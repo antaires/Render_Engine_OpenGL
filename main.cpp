@@ -149,10 +149,17 @@ int main() {
     std::cout<<"\nVersion: "<<glGetString(GL_VERSION)<<std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
     
-    float position[6] = {
-      -0.5f, -0.5f,
-       0.0f,  0.5f,
-       0.5f, -0.5f,
+    float position[] = {
+      -0.5f, -0.5f, // 0
+       0.5f, -0.5f, // 1
+       0.5f,  0.5f, // 2
+      -0.5f,  0.5f  // 3
+    };
+    
+    // index buffer
+    unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0
     };
     
     // (me) to fix mac issue - not drawing
@@ -164,9 +171,16 @@ int main() {
     unsigned int buffer;
     glGenBuffers(1, &buffer ); // gives us back an id
     glBindBuffer(GL_ARRAY_BUFFER, buffer); // bind the buffer (bound is the one drawn)
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), position, GL_STATIC_DRAW); // put data in buffer
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), position, GL_STATIC_DRAW); // put data in buffer
+    
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    
+    // pass index buffer to GPU
+    unsigned int ibo; // index buffer object
+    glGenBuffers(1, &ibo); // gives us back an id
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // bind the buffer (bound is the one drawn)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW); // put data in buffer
     
     // create shader
     ShaderProgramSource source = ParseShader("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/shaders/Basic.shader");
@@ -179,7 +193,7 @@ int main() {
         
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // number of INDICES
         
         glfwSwapBuffers(window);
         
