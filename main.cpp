@@ -159,6 +159,8 @@ int main() {
     }
     glfwMakeContextCurrent(window);
     
+    glfwSwapInterval(1); // limit frame rate
+    
     // GLEW init
     glewExperimental = GL_TRUE;
     if( glewInit() != GLEW_OK){
@@ -206,13 +208,26 @@ int main() {
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     GLCall(glUseProgram(shader)); // bind shader
     
+    GLCall(int location = glGetUniformLocation(shader, "u_Color")); // get location of variable
+    ASSERT(location != -1); // uniform not found (not always an error, but for here its ok)
+    GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader
+    
     // GAME LOOP
+    float red = 0.0f;
+    float increment = 0.05f;
     while (!glfwWindowShouldClose(window)){
         //glClearColor(0.2f, 0.3f, 0.3f, 0.5f); // 1 is fully visible alpha
         
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
         
+        GLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader, set PER DRAW call 
         GLCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) ); // number of INDICES
+        
+        if (red > 1.0f)
+            increment = -0.05f;
+        else if (red < 0.0f)
+            increment = 0.05f;
+        red += increment;
         
         GLCall(glfwSwapBuffers(window));
         
