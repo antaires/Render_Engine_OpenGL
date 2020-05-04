@@ -141,6 +141,7 @@ int main() {
         return -1;
     }
     
+    // create with core profile
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -177,22 +178,23 @@ int main() {
       -0.5f,  0.5f  // 3
     };
     
+    
     // index buffer
     unsigned int indices[] = {
         0, 1, 2,
         2, 3, 0
     };
     
-    // (me) to fix mac issue - not drawing
-    unsigned int vertexArrayId;
-    GLCall(glGenVertexArrays(1, &vertexArrayId));
-    GLCall(glBindVertexArray(vertexArrayId));
+    // vertex array
+    unsigned int vao;
+    GLCall(glGenVertexArrays(1, &vao));
+    GLCall(glBindVertexArray(vao));
     
     // define a buffer
     unsigned int buffer;
     GLCall(glGenBuffers(1, &buffer )); // gives us back an id
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // bind the buffer (bound is the one drawn)
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), position, GL_STATIC_DRAW)); // put data in buffer
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), position, GL_STATIC_DRAW)); // put data in buffer
     
     GLCall(glEnableVertexAttribArray(0));
     GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
@@ -212,17 +214,28 @@ int main() {
     ASSERT(location != -1); // uniform not found (not always an error, but for here its ok)
     GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader
     
+    // unbind everything
+    GLCall(glBindVertexArray(0));
+    GLCall(glUseProgram(0));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    
     // GAME LOOP
     float red = 0.0f;
     float increment = 0.05f;
     while (!glfwWindowShouldClose(window)){
         //glClearColor(0.2f, 0.3f, 0.3f, 0.5f); // 1 is fully visible alpha
-        
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
         
-        GLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader, set PER DRAW call 
+        // bind
+        GLCall(glUseProgram(shader));
+        GLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader, set PER DRAW call
+        GLCall(glBindVertexArray(vao));
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+        
         GLCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) ); // number of INDICES
         
+        // modulate color
         if (red > 1.0f)
             increment = -0.05f;
         else if (red < 0.0f)
