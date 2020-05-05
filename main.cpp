@@ -10,32 +10,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "src/Renderer.h"
+#include "src/VertexBuffer.h"
+#include "src/IndexBuffer.h"
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 
-#define ASSERT(x) if (!(x)) __builtin_trap()
-#define GLCall(x) GLClearError(); x; ASSERT( GLLogCall(#x, __FILE__, __LINE__) )
-
 // window width
 const GLint WIDTH = 800, HEIGHT = 600;
-
-static void GLClearError()
-{
-    while(glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-    // will print out decimal error code, but need to convert to hexadecimal to check header file errors
-    while(GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL Error] (" << error << "):" << function << " " << file << ":" << line << std::endl;
-        return false;
-    }
-    return true;
-}
 
 struct ShaderProgramSource
 {
@@ -171,84 +156,82 @@ int main() {
     std::cout<<"\nVersion: "<<glGetString(GL_VERSION)<<std::endl;
     glViewport(0, 0, screenWidth, screenHeight);
     
-    float position[] = {
-      -0.5f, -0.5f, // 0
-       0.5f, -0.5f, // 1
-       0.5f,  0.5f, // 2
-      -0.5f,  0.5f  // 3
-    };
-    
-    
-    // index buffer
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-    
-    // vertex array
-    unsigned int vao;
-    GLCall(glGenVertexArrays(1, &vao));
-    GLCall(glBindVertexArray(vao));
-    
-    // define a buffer
-    unsigned int buffer;
-    GLCall(glGenBuffers(1, &buffer )); // gives us back an id
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // bind the buffer (bound is the one drawn)
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), position, GL_STATIC_DRAW)); // put data in buffer
-    
-    GLCall(glEnableVertexAttribArray(0));
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
-    
-    // pass index buffer to GPU
-    unsigned int ibo; // index buffer object
-    GLCall(glGenBuffers(1, &ibo)); // gives us back an id
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // bind the buffer (bound is the one drawn)
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW)); // put data in buffer
-    
-    // create shader
-    ShaderProgramSource source = ParseShader("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/shaders/Basic.shader");
-    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-    GLCall(glUseProgram(shader)); // bind shader
-    
-    GLCall(int location = glGetUniformLocation(shader, "u_Color")); // get location of variable
-    ASSERT(location != -1); // uniform not found (not always an error, but for here its ok)
-    GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader
-    
-    // unbind everything
-    GLCall(glBindVertexArray(0));
-    GLCall(glUseProgram(0));
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    
-    // GAME LOOP
-    float red = 0.0f;
-    float increment = 0.05f;
-    while (!glfwWindowShouldClose(window)){
-        //glClearColor(0.2f, 0.3f, 0.3f, 0.5f); // 1 is fully visible alpha
-        GLCall(glClear(GL_COLOR_BUFFER_BIT));
+    {
+        float position[] = {
+          -0.5f, -0.5f, // 0
+           0.5f, -0.5f, // 1
+           0.5f,  0.5f, // 2
+          -0.5f,  0.5f  // 3
+        };
         
-        // bind
-        GLCall(glUseProgram(shader));
-        GLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader, set PER DRAW call
+        
+        // index buffer
+        unsigned int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+        };
+        
+        // vertex array
+        unsigned int vao;
+        GLCall(glGenVertexArrays(1, &vao));
         GLCall(glBindVertexArray(vao));
-        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
         
-        GLCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) ); // number of INDICES
+        // define a buffer
+        VertexBuffer vb(position, 4 * 2 * sizeof(float));
         
-        // modulate color
-        if (red > 1.0f)
-            increment = -0.05f;
-        else if (red < 0.0f)
-            increment = 0.05f;
-        red += increment;
+        GLCall(glEnableVertexAttribArray(0));
+        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
         
-        GLCall(glfwSwapBuffers(window));
+        // pass index buffer to GPU
+        IndexBuffer ib(indices, 6);
         
-        GLCall(glfwPollEvents());
+        // create shader
+        ShaderProgramSource source = ParseShader("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/shaders/Basic.shader");
+        unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+        GLCall(glUseProgram(shader)); // bind shader
+        
+        GLCall(int location = glGetUniformLocation(shader, "u_Color")); // get location of variable
+        ASSERT(location != -1); // uniform not found (not always an error, but for here its ok)
+        GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader
+        
+        // unbind everything
+        GLCall(glBindVertexArray(0));
+        GLCall(glUseProgram(0));
+        GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        
+        // GAME LOOP
+        float red = 0.0f;
+        float increment = 0.05f;
+        while (!glfwWindowShouldClose(window)){
+            //glClearColor(0.2f, 0.3f, 0.3f, 0.5f); // 1 is fully visible alpha
+            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            
+            // bind
+            GLCall(glUseProgram(shader));
+            GLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader, set PER DRAW call
+            GLCall(glBindVertexArray(vao));
+            
+            ib.Bind();
+            
+            // could put this into index buffer
+            GLCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) ); // number of INDICES
+            
+            // modulate color
+            if (red > 1.0f)
+                increment = -0.05f;
+            else if (red < 0.0f)
+                increment = 0.05f;
+            red += increment;
+            
+            GLCall(glfwSwapBuffers(window));
+            
+            GLCall(glfwPollEvents());
+        }
+        
+        // clean up shader
+        GLCall(glDeleteProgram(shader));
     }
-    
-    // clean up shader
-    GLCall(glDeleteProgram(shader));
     
     // CLEAN UP
     GLCall(glfwTerminate());
