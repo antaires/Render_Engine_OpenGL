@@ -13,6 +13,7 @@
 #include "src/Renderer.h"
 #include "src/VertexBuffer.h"
 #include "src/IndexBuffer.h"
+#include "src/VertexArray.h"
 
 #include <iostream>
 #include <fstream>
@@ -176,11 +177,12 @@ int main() {
         GLCall(glGenVertexArrays(1, &vao));
         GLCall(glBindVertexArray(vao));
         
-        // define a buffer
+        VertexArray va;
         VertexBuffer vb(position, 4 * 2 * sizeof(float));
         
-        GLCall(glEnableVertexAttribArray(0));
-        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
         
         // pass index buffer to GPU
         IndexBuffer ib(indices, 6);
@@ -210,8 +212,8 @@ int main() {
             // bind
             GLCall(glUseProgram(shader));
             GLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f)); // set uniform in fragment shader, set PER DRAW call
-            GLCall(glBindVertexArray(vao));
-            
+
+            va.Bind();
             ib.Bind();
             
             // could put this into index buffer
