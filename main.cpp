@@ -97,22 +97,20 @@ int main() {
         ib.Unbind();
         shader.Unbind();
         
+        Renderer renderer;
+        
         // GAME LOOP
         float red = 0.0f;
         float increment = 0.05f;
         while (!glfwWindowShouldClose(window)){
-            //glClearColor(0.2f, 0.3f, 0.3f, 0.5f); // 1 is fully visible alpha
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+        
+            renderer.Clear();
             
             // bind
             shader.Bind();
             shader.SetUniform4f("u_Color", red, 0.3f, 0.8f, 1.0f);// set uniform in fragment shader, set PER DRAW call
 
-            va.Bind();
-            ib.Bind();
-            
-            // could put this into index buffer
-            GLCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) ); // number of INDICES
+            renderer.Draw(va, ib, shader);
             
             // modulate color
             if (red > 1.0f)

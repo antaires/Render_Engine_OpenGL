@@ -4,8 +4,20 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define ASSERT(x) if (!(x)) __builtin_trap()
-#define GLCall(x) GLClearError(); x; ASSERT( GLLogCall(#x, __FILE__, __LINE__) )
+#include "IndexBuffer.h"
+#include "Shader.h"
+#include "Helpers.h"
+#include "VertexArray.h"
 
-void GLClearError();
-bool GLLogCall(const char* function, const char* file, int line);
+class VertexArray;
+class IndexBuffer;
+
+// could make this a singleton, but you might want multiple instances of the render
+class Renderer {
+public:
+    // TODO: more traditional to take in a material rather than a shader for Draw()
+    // in this case, the renderer sets up the shader / uniforms on its own
+    void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+    void Clear() const;
+private:
+};
