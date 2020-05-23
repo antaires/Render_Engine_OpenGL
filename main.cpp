@@ -15,6 +15,7 @@
 #include "src/IndexBuffer.h"
 #include "src/VertexArray.h"
 #include "src/Shader.h"
+#include "src/Texture.h"
 
 #include <iostream>
 #include <fstream>
@@ -63,10 +64,10 @@ int main() {
     
     {
         float position[] = {
-          -0.5f, -0.5f, // 0
-           0.5f, -0.5f, // 1
-           0.5f,  0.5f, // 2
-          -0.5f,  0.5f  // 3
+          -0.5f, -0.5f, 0.0f, 0.0f, // 0
+           0.5f, -0.5f, 1.0f, 0.0f, // 1
+           0.5f,  0.5f, 1.0f, 1.0f, // 2
+          -0.5f,  0.5f, 0.0f, 1.0f  // 3
         };
         
         
@@ -76,10 +77,15 @@ int main() {
             2, 3, 0
         };
         
+        // blending alpha pixels
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        GLCall(glEnable(GL_BLEND));
+        
         VertexArray va;
-        VertexBuffer vb(position, 4 * 2 * sizeof(float));
+        VertexBuffer vb(position, 4 * 4 * sizeof(float));
         
         VertexBufferLayout layout;
+        layout.Push<float>(2);
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
         
@@ -90,6 +96,13 @@ int main() {
         Shader shader("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+        
+        // texture
+        Texture texture("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/textures/testTexture.png");
+        int textureSlot = 0;
+        texture.Bind(textureSlot);
+        shader.SetUniform1i("u_Texture", textureSlot);
+        
         
         // unbind everything
         va.Unbind();
