@@ -16,6 +16,9 @@
 #include "src/VertexArray.h"
 #include "src/Shader.h"
 #include "src/Texture.h"
+#include "src/vender/glm/glm.hpp"
+#include "src/vender/glm/gtc/matrix_transform.hpp"
+
 
 #include <iostream>
 #include <fstream>
@@ -92,10 +95,16 @@ int main() {
         // pass index buffer to GPU
         IndexBuffer ib(indices, 6);
         
+        // create projection matrix
+        glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); // orthographic matrix 4:3
+        
+        
+        
         // create shader
         Shader shader("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+        shader.SetUniformMat4f("u_MVP", proj);
         
         // texture
         Texture texture("/Users/valiaodonnell/Documents/openGL/Experiments_in_OpenGL/Experiments_in_OpenGL/res/textures/testTexture.png");

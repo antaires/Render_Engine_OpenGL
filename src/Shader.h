@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vender/glm/glm.hpp"
+
 #include <string>
 #include <unordered_map>
 
@@ -34,6 +36,7 @@ public:
     void SetUniform1i(const std::string& name, int value);
     void SetUniform1f(const std::string& name, float value);
     void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
+    void SetUniformMat4f(const std::string& name, glm::mat4 matrix);
     
     // TODO: implement all possible (matrices, etc)
 };
