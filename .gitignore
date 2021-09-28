@@ -1,0 +1,11 @@
+# files
+.DS_Store
+*.ini
+
+# directories
+bin/
+
+# Executables
+*.exe
+*.out
+*.app

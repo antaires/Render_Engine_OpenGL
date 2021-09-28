@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Helpers.h"
+#include <GL/glew.h>
 
 #include <vector>
 
@@ -9,7 +10,7 @@ struct VertexBufferElement
     unsigned int count;
     unsigned int type;
     unsigned char normalized;
-        
+
     static unsigned int GetSizeOfType(unsigned int type)
     {
         switch(type)
@@ -33,10 +34,9 @@ public:
     {
         m_Stride = 0;
     }
-    
+
     template<typename T>
     void Push(unsigned int count);
-    
 
     template<>
     void Push<float>(unsigned int count)
@@ -58,8 +58,7 @@ public:
         m_Elements.push_back({ count, GL_UNSIGNED_BYTE, GL_TRUE });
         m_Stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_BYTE);
     }
-    
+
     inline unsigned int GetStride() const { return m_Stride; }
     inline const std::vector<VertexBufferElement> GetElements() const& { return m_Elements; }
 };
-
